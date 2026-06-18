@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import TypingText from "../components/auth/TypingText";
+
 
 export default function Home() {
   return (
@@ -20,8 +22,10 @@ export default function Home() {
           Your AI-powered coding learning companion.
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-600">
-          Giải thích khái niệm, phân tích source code, tạo quiz và lưu ghi chú
-          học tập trong một không gian tập trung.
+          <TypingText
+            text="Giải thích khái niệm, phân tích source code, tạo quiz và lưu ghi chú học tập trong một không gian tập trung."
+            speed={35}
+          />
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
