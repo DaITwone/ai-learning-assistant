@@ -67,6 +67,14 @@ export default function LoginPage() {
             <Button type="submit" className="h-11 w-full">
               Đăng nhập
             </Button>
+
+            {/* <Button type="submit" className="h-11 w-full" disabled={loading}>
+              {loading ? (
+                <div className="h-5 w-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              ) : (
+                "Đăng ký"
+              )}
+            </Button> */}
           </form>
 
           <p className="mt-8 text-center text-sm text-muted-foreground">
