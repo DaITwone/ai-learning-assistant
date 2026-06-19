@@ -43,7 +43,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/");
+      router.push("/chat");
       router.refresh();
     } catch {
       setError("Có lỗi xảy ra. Vui lòng thử lại.");
