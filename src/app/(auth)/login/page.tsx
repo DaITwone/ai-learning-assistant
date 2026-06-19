@@ -13,7 +13,10 @@ export default function LoginPage() {
         <CardContent className="p-8">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold tracking-tight">
-              CHÀO MỪNG TRỞ LẠI 👋
+              CHÀO MỪNG TRỞ LẠI{" "}
+              <span className="inline-block origin-[70%_70%] animate-wave">
+                👋
+              </span>
             </h1>
 
             <p className="mt-2 text-sm text-muted-foreground">

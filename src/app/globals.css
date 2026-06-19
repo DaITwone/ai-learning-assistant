@@ -48,29 +48,67 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-.animated-bg {
-  background: linear-gradient(
-    -45deg,
-    #c5a6ff,
-    #9bcbff,
-    #f6f8fb
-  );
-  background-size: 400% 400%;
-  animation: gradientMove 12s ease infinite;
+/* --- 1. KEYFRAMES CHẠY HÌNH SỐ 8 (CỦA ĐỐM MÀU) --- */
+/* Mô phỏng quỹ đạo vô cực dựa trên trục X và Y */
+@keyframes infinityMove {
+  0%   { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(180px, -80px) scale(1.2); }
+  50%  { transform: translate(360px, 0) scale(1); }
+  75%  { transform: translate(180px, 80px) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
 }
 
-@keyframes gradientMove {
-  0% {
-    background-position: 0% 50%;
-  }
+@keyframes infinityMoveReverse {
+  0%   { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(-180px, 80px) scale(0.9); }
+  50%  { transform: translate(-360px, 0) scale(1.2); }
+  75%  { transform: translate(-180px, -80px) scale(1); }
+  100% { transform: translate(0, 0) scale(1); }
+}
 
-  50% {
-    background-position: 100% 50%;
-  }
+/* --- 2. CLASS HOÀN CHỈNH CỦA CẬU --- */
+.animated-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  
+  /* Đổi hẳn sang nền trắng theo ý cậu */
+  background: #ffffff; 
+  
+  /* Giữ nguyên hiệu ứng kính mờ tinh tế phía trên bề mặt */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
 
-  100% {
-    background-position: 0% 50%;
-  }
+/* Tạo các đốm màu aurora ẩn phía sau lớp kính mờ */
+.animated-bg::before,
+.animated-bg::after {
+  content: "";
+  position: absolute;
+  /* Căn giữa đốm màu vào chính giữa màn hình làm tâm số 8 */
+  top: calc(50% - 200px);
+  left: calc(50% - 200px);
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  filter: blur(100px); /* Làm nhòe cực mạnh để loang màu mịn vào nền trắng */
+  z-index: -1;         /* Đẩy ra sau để lớp kính của chính nó phủ lên */
+  opacity: 0.55;
+}
+
+/* Đốm màu Tím chạy xuôi hình số 8 */
+.animated-bg::before {
+  background: #c5a6ff;
+  animation: infinityMove 12s ease-in-out infinite; /* Giữ nguyên thời gian 12s và lặp vô hạn của cậu */
+}
+
+/* Đốm màu Xanh chạy ngược hình số 8 tạo sự đối xứng */
+.animated-bg::after {
+  background: #9bcbff;
+  animation: infinityMoveReverse 12s ease-in-out infinite;
 }
 
 @keyframes floatDiamond {
