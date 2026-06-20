@@ -1,29 +1,27 @@
-import type { ChatMessage } from "@/types/message";
-import { cn } from "@/lib/utils";
-import { MessageRenderer } from "./MessageRenderer";
 import Image from "next/image";
+
+import { cn } from "@/lib/utils";
+import type { ChatMessage } from "@/types/message";
+import { MessageRenderer } from "./MessageRenderer";
 
 type MessageListProps = {
   messages: ChatMessage[];
   isAssistantLoading?: boolean;
 };
 
-export function MessageList({
-  messages,
-  isAssistantLoading,
-}: MessageListProps) {
+export function MessageList({ messages }: MessageListProps) {
   return (
-    <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-6 py-8">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 py-5 sm:gap-6 sm:px-6 sm:py-8">
       {messages.map((message) => (
         <div
           key={message.id}
           className={cn(
-            "flex items-end gap-3",
+            "flex min-w-0 items-end gap-2 sm:gap-3",
             message.role === "user" ? "justify-end" : "justify-start",
           )}
         >
           {message.role === "assistant" && (
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white sm:h-9 sm:w-9">
               <Image
                 src="/icon.png"
                 alt="Logo AI Learning Assistant"
@@ -37,10 +35,10 @@ export function MessageList({
 
           <div
             className={cn(
-              "rounded-3xl px-5 py-3 shadow-sm",
+              "min-w-0 break-words rounded-2xl px-4 py-3 text-sm shadow-sm sm:rounded-3xl sm:px-5 sm:text-base",
               message.role === "user"
-                ? "max-w-[75%] bg-slate-950 text-white"
-                : "max-w-[90%] border border-slate-200 bg-white text-slate-900",
+                ? "max-w-[82%] bg-slate-950 text-white sm:max-w-[75%]"
+                : "max-w-[calc(100%-2.5rem)] border border-slate-200 bg-white text-slate-900 sm:max-w-[90%]",
             )}
           >
             {message.role === "assistant" && !message.content ? (
@@ -55,7 +53,7 @@ export function MessageList({
           </div>
 
           {message.role === "user" && (
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold sm:h-9 sm:w-9">
               U
             </div>
           )}

@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import type { ChatMessage } from "@/types/message";
+import { Menu } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import type { Conversation } from "@/types/conversation";
+import type { ChatMessage } from "@/types/message";
 import { ChatInput } from "./ChatInput";
 import { ChatSidebar } from "./ChatSidebar";
 import { MessageList } from "./MessageList";
@@ -37,6 +40,7 @@ export function ChatPageClient() {
     string | null
   >(initialConversations[0]?.id ?? null);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   function handleCreateConversation() {
     const newConversation: Conversation = {
@@ -88,7 +92,6 @@ export function ChatPageClient() {
     ]);
 
     try {
-
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -159,28 +162,37 @@ export function ChatPageClient() {
             : message,
         ),
       );
-    } finally {
-      //
     }
   }
 
   return (
-    <main className="flex h-screen bg-slate-50">
+    <main className="flex h-dvh overflow-hidden bg-slate-50">
       <ChatSidebar
         conversations={conversations}
         selectedConversationId={selectedConversationId}
         onSelectConversation={handleSelectConversation}
         onCreateConversation={handleCreateConversation}
+        isMobileOpen={isSidebarOpen}
+        onMobileClose={() => setIsSidebarOpen(false)}
       />
 
-      <section className="flex min-w-0 flex-1 flex-col">
-        <header className="px-6 py-3.5">
-          <h1 className="text-lg font-semibold">AI Learning Assistant</h1>
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200/70 bg-slate-50 px-3 sm:px-6 md:border-b-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-xl md:hidden"
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <Menu className="size-5 text-slate-700" />
+          </Button>
+
+          <h1 className="truncate text-base font-semibold sm:text-lg">
+            AI Learning Assistant
+          </h1>
         </header>
 
-        <MessageList
-          messages={messages}
-        />
+        <MessageList messages={messages} />
         <ChatInput onSend={handleSend} />
       </section>
     </main>
