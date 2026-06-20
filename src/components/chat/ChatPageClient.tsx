@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -10,63 +10,149 @@ import { ChatInput } from "./ChatInput";
 import { ChatSidebar } from "./ChatSidebar";
 import { MessageList } from "./MessageList";
 
-const initialConversations: Conversation[] = [
-  {
-    id: "conversation-1",
-    title: "Explain React useState",
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "conversation-2",
-    title: "JavaScript async await",
-    updatedAt: new Date().toISOString(),
-  },
-];
+type ApiConversation = Omit<Conversation, "createAt"> & {
+  createdAt?: string;
+  createAt?: string;
+};
 
-const initialMessages: ChatMessage[] = [
-  {
-    id: "welcome",
-    role: "assistant",
-    type: "text",
-    content: "Xin chào! Tớ có thể giúp gì cho bạn?",
-    createdAt: new Date().toISOString(),
-  },
-];
+function normalizeConversation(conversation: ApiConversation): Conversation {
+  return {
+    ...conversation,
+    createAt:
+      conversation.createAt ?? conversation.createdAt ?? conversation.updatedAt,
+  };
+}
 
 export function ChatPageClient() {
-  const [conversations, setConversations] =
-    useState<Conversation[]>(initialConversations);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
-  >(initialConversations[0]?.id ?? null);
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  >(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  function handleCreateConversation() {
-    const newConversation: Conversation = {
-      id: crypto.randomUUID(),
-      title: "New chat",
-      updatedAt: new Date().toISOString(),
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadConversations() {
+      try {
+        const response = await fetch("/api/conversations");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch conversations");
+        }
+
+        const data = await response.json();
+        const loadedConversations = data.conversations.map(
+          normalizeConversation,
+        );
+
+        if (!isMounted) return;
+
+        setConversations(loadedConversations);
+
+        const firstConversation = loadedConversations[0];
+
+        if (firstConversation) {
+          setSelectedConversationId(firstConversation.id);
+          await loadMessages(firstConversation.id, isMounted);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    void loadConversations();
+
+    return () => {
+      isMounted = false;
     };
+  }, []);
+
+  async function loadMessages(conversationId: string, shouldUpdate = true) {
+    const response = await fetch(
+      `/api/conversations/${conversationId}/messages`,
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch messages");
+    }
+
+    const data = await response.json();
+    const loadedMessages = data.messages as ChatMessage[];
+
+    if (shouldUpdate) {
+      setMessages(loadedMessages);
+    }
+
+    return loadedMessages;
+  }
+
+  async function createConversation() {
+    const response = await fetch("/api/conversations", {
+      method: "POST",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to create conversation");
+    }
+
+    const data = await response.json();
+    const newConversation = normalizeConversation(data.conversation);
 
     setConversations((currentConversations) => [
       newConversation,
       ...currentConversations,
     ]);
-
     setSelectedConversationId(newConversation.id);
-    setMessages(initialMessages);
+    setMessages([]);
+
+    return newConversation;
   }
 
-  function handleSelectConversation(conversationId: string) {
-    setSelectedConversationId(conversationId);
+  async function handleCreateConversation() {
+    try {
+      await createConversation();
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
-    // Tạm thời reset mock messages.
-    // Sau này chỗ này sẽ gọi GET /api/conversations/:id/messages.
-    setMessages(initialMessages);
+  async function handleSelectConversation(conversationId: string) {
+    try {
+      setSelectedConversationId(conversationId);
+      setMessages([]);
+      await loadMessages(conversationId);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function refreshConversations() {
+    const response = await fetch("/api/conversations");
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch conversations");
+    }
+
+    const data = await response.json();
+
+    setConversations(data.conversations.map(normalizeConversation));
   }
 
   async function handleSend(content: string) {
+    let conversationId = selectedConversationId;
+
+    if (!conversationId) {
+      try {
+        const conversation = await createConversation();
+        conversationId = conversation.id;
+      } catch (error) {
+        console.error(error);
+        return;
+      }
+    }
+
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
@@ -97,7 +183,10 @@ export function ChatPageClient() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({
+          conversationId,
+          message: content,
+        }),
       });
 
       if (!response.ok) {
@@ -110,14 +199,16 @@ export function ChatPageClient() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
 
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n\n");
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() ?? "";
 
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
@@ -125,6 +216,12 @@ export function ChatPageClient() {
           const data = line.replace("data: ", "");
 
           if (data === "[DONE]") {
+            try {
+              await refreshConversations();
+            } catch (error) {
+              console.error(error);
+            }
+
             return;
           }
 
@@ -170,8 +267,12 @@ export function ChatPageClient() {
       <ChatSidebar
         conversations={conversations}
         selectedConversationId={selectedConversationId}
-        onSelectConversation={handleSelectConversation}
-        onCreateConversation={handleCreateConversation}
+        onSelectConversation={(conversationId) => {
+          void handleSelectConversation(conversationId);
+        }}
+        onCreateConversation={() => {
+          void handleCreateConversation();
+        }}
         isMobileOpen={isSidebarOpen}
         onMobileClose={() => setIsSidebarOpen(false)}
       />
@@ -193,7 +294,11 @@ export function ChatPageClient() {
         </header>
 
         <MessageList messages={messages} />
-        <ChatInput onSend={handleSend} />
+        <ChatInput
+          onSend={(content) => {
+            void handleSend(content);
+          }}
+        />
       </section>
     </main>
   );

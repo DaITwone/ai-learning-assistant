@@ -3,7 +3,6 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types/message";
 import { MessageRenderer } from "./MessageRenderer";
-import TypingText from "../auth/TypingText";
 
 type MessageListProps = {
   messages: ChatMessage[];
@@ -48,8 +47,6 @@ export function MessageList({ messages }: MessageListProps) {
                 <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
                 <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
               </div>
-            ) : message.id === "welcome" ? (
-              <TypingText text={message.content} />
             ) : (
               <MessageRenderer message={message} />
             )}

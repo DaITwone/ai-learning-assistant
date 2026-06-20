@@ -26,7 +26,7 @@ export default function TypingText({ text, speed = 50 }: TypingTextProps) {
   }, [text, speed]);
 
   return (
-    <span>
+    <span className="text-sm">
       {displayedText}
       {displayedText.length < text.length && (
         <span className="animate-pulse">|</span>
