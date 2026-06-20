@@ -5,9 +5,13 @@ import Image from "next/image";
 
 type MessageListProps = {
   messages: ChatMessage[];
+  isAssistantLoading?: boolean;
 };
 
-export function MessageList({ messages }: MessageListProps) {
+export function MessageList({
+  messages,
+  isAssistantLoading,
+}: MessageListProps) {
   return (
     <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-6 py-8">
       {messages.map((message) => (
@@ -39,7 +43,15 @@ export function MessageList({ messages }: MessageListProps) {
                 : "max-w-[90%] border border-slate-200 bg-white text-slate-900",
             )}
           >
-            <MessageRenderer message={message} />
+            {message.role === "assistant" && !message.content ? (
+              <div className="flex gap-1">
+                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
+              </div>
+            ) : (
+              <MessageRenderer message={message} />
+            )}
           </div>
 
           {message.role === "user" && (

@@ -31,9 +31,8 @@ const initialMessages: ChatMessage[] = [
 ];
 
 export function ChatPageClient() {
-  const [conversations, setConversations] = useState<Conversation[]>(
-    initialConversations
-  );
+  const [conversations, setConversations] =
+    useState<Conversation[]>(initialConversations);
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(initialConversations[0]?.id ?? null);
@@ -63,7 +62,7 @@ export function ChatPageClient() {
     setMessages(initialMessages);
   }
 
-  function handleSend(content: string) {
+  async function handleSend(content: string) {
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
@@ -72,24 +71,97 @@ export function ChatPageClient() {
       createdAt: new Date().toISOString(),
     };
 
-    setMessages((currentMessages) => [...currentMessages, userMessage]);
+    const assistantMessageId = crypto.randomUUID();
 
-    if (!selectedConversationId) return;
+    const assistantMessage: ChatMessage = {
+      id: assistantMessageId,
+      role: "assistant",
+      type: "text",
+      content: "",
+      createdAt: new Date().toISOString(),
+    };
 
-    setConversations((currentConversations) =>
-      currentConversations.map((conversation) =>
-        conversation.id === selectedConversationId
-          ? {
-              ...conversation,
-              title:
-                conversation.title === "New chat"
-                  ? content.slice(0, 40)
-                  : conversation.title,
-              updatedAt: new Date().toISOString(),
-            }
-          : conversation
-      )
-    );
+    setMessages((currentMessages) => [
+      ...currentMessages,
+      userMessage,
+      assistantMessage,
+    ]);
+
+    try {
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: content }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
+
+      if (!response.body) {
+        throw new Error("Response body is empty");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n\n");
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+
+          const data = line.replace("data: ", "");
+
+          if (data === "[DONE]") {
+            return;
+          }
+
+          const parsed = JSON.parse(data);
+
+          if (parsed.text) {
+            setMessages((currentMessages) =>
+              currentMessages.map((message) =>
+                message.id === assistantMessageId
+                  ? {
+                      ...message,
+                      content: message.content + parsed.text,
+                    }
+                  : message,
+              ),
+            );
+          }
+
+          if (parsed.error) {
+            throw new Error(parsed.error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error(error);
+
+      setMessages((currentMessages) =>
+        currentMessages.map((message) =>
+          message.id === assistantMessageId
+            ? {
+                ...message,
+                content:
+                  "Xin lỗi, tớ chưa thể trả lời lúc này. Bạn thử lại nhé.",
+              }
+            : message,
+        ),
+      );
+    } finally {
+      //
+    }
   }
 
   return (
@@ -106,7 +178,9 @@ export function ChatPageClient() {
           <h1 className="text-lg font-semibold">AI Learning Assistant</h1>
         </header>
 
-        <MessageList messages={messages} />
+        <MessageList
+          messages={messages}
+        />
         <ChatInput onSend={handleSend} />
       </section>
     </main>
