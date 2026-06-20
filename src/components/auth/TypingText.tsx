@@ -7,10 +7,7 @@ type TypingTextProps = {
   speed?: number;
 };
 
-export default function TypingText({
-  text,
-  speed = 50,
-}: TypingTextProps) {
+export default function TypingText({ text, speed = 50 }: TypingTextProps) {
   const [displayedText, setDisplayedText] = useState("");
 
   useEffect(() => {
@@ -31,7 +28,9 @@ export default function TypingText({
   return (
     <span>
       {displayedText}
-      <span className="animate-pulse">|</span>
+      {displayedText.length < text.length && (
+        <span className="animate-pulse">|</span>
+      )}
     </span>
   );
 }

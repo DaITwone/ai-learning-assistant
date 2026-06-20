@@ -28,7 +28,7 @@ const initialMessages: ChatMessage[] = [
     id: "welcome",
     role: "assistant",
     type: "text",
-    content: "Xin chào! Tớ có thể giúp gì cho bạn.",
+    content: "Xin chào! Tớ có thể giúp gì cho bạn?",
     createdAt: new Date().toISOString(),
   },
 ];
