@@ -37,7 +37,7 @@ export function ChatInput({ onSend }: ChatInputProps) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Hỏi kiến thức, phân tích code, tạo quiz..."
+            placeholder="Khám phá kiến thức mới..."
             className="
               min-h-[52px]
               max-h-[160px]
