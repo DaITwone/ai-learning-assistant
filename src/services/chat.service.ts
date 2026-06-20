@@ -8,6 +8,12 @@ type StreamChatInput = {
   message: string;
 };
 
+function createConversationTitleFromMessage(message: string) {
+  const title = message.trim().slice(0, 120);
+
+  return title.length > 0 ? title : "New chat";
+}
+
 export async function streamChatResponse(input: StreamChatInput) {
   const conversation = await ConversationRepository.findByIdAndUserId(
     input.conversationId,
@@ -66,8 +72,4 @@ export async function saveAssistantMessage(
   await ConversationRepository.touch(conversationId);
 }
 
-function createConversationTitleFromMessage(message: string) {
-  const title = message.trim().slice(0, 120);
 
-  return title.length > 0 ? title : "New chat";
-}

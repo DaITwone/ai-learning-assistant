@@ -15,6 +15,7 @@ type ApiConversation = Omit<Conversation, "createAt"> & {
   createAt?: string;
 };
 
+// Chuẩn hóa dữ liệu, hàm dùng để xử lý trường createAt, createdAt cho thống nhất.
 function normalizeConversation(conversation: ApiConversation): Conversation {
   return {
     ...conversation,
@@ -34,6 +35,7 @@ export function ChatPageClient() {
   useEffect(() => {
     let isMounted = true;
 
+    // Hàm gọi API lấy danh sách conversation
     async function loadConversations() {
       try {
         const response = await fetch("/api/conversations");
