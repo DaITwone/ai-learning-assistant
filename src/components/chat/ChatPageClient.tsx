@@ -15,6 +15,7 @@ type ApiConversation = Omit<Conversation, "createAt"> & {
   createAt?: string;
 };
 
+// Tải danh sách conversation và tự động mở conversation đầu tiên
 // Chuẩn hóa dữ liệu, hàm dùng để xử lý trường createAt, createdAt cho thống nhất.
 function normalizeConversation(conversation: ApiConversation): Conversation {
   return {
@@ -32,6 +33,11 @@ export function ChatPageClient() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Khởi tạo dữ liệu ban đầu:
+  // 1. Lấy danh sách cuộc trò chuyện
+  // 2. Chọn conversation đầu tiên nếu tồn tại
+  // 3. Tải lịch sử tin nhắn tương ứng
+  // 4. Tránh cập nhật state khi component đã unmount
   useEffect(() => {
     let isMounted = true;
 
@@ -71,6 +77,7 @@ export function ChatPageClient() {
     };
   }, []);
 
+  // Lấy lịch sử tin nhắn của một conversation
   async function loadMessages(conversationId: string, shouldUpdate = true) {
     const response = await fetch(
       `/api/conversations/${conversationId}/messages`,
@@ -83,6 +90,7 @@ export function ChatPageClient() {
     const data = await response.json();
     const loadedMessages = data.messages as ChatMessage[];
 
+    // Cho phép tái sử dụng hàm để lấy dữ liệu mà không cần cập nhật UI
     if (shouldUpdate) {
       setMessages(loadedMessages);
     }
@@ -90,6 +98,7 @@ export function ChatPageClient() {
     return loadedMessages;
   }
 
+  // Tạo conversation mới và cập nhật state cục bộ ngay lập tức
   async function createConversation() {
     const response = await fetch("/api/conversations", {
       method: "POST",
@@ -120,6 +129,7 @@ export function ChatPageClient() {
     }
   }
 
+  // Chuyển sang conersation khác và tải lại lịch sử tin nhắn
   async function handleSelectConversation(conversationId: string) {
     try {
       setSelectedConversationId(conversationId);
@@ -130,6 +140,7 @@ export function ChatPageClient() {
     }
   }
 
+  // Đồng bộ lại danh sách conversation sau khi có thay đổi từ server
   async function refreshConversations() {
     const response = await fetch("/api/conversations");
 
@@ -142,6 +153,7 @@ export function ChatPageClient() {
     setConversations(data.conversations.map(normalizeConversation));
   }
 
+  // Gửi tin nhắn người dùng và xử lý phản hồi AI theo dạng stream
   async function handleSend(content: string) {
     let conversationId = selectedConversationId;
 
@@ -201,6 +213,8 @@ export function ChatPageClient() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+
+      // Buffer lưu dữ liệu chưa hoàn chỉnh giữa các lần đọc stream.
       let buffer = "";
 
       while (true) {
@@ -217,6 +231,7 @@ export function ChatPageClient() {
 
           const data = line.replace("data: ", "");
 
+          // AI đã trả lời xong, đồng bộ lại danh sách conversation
           if (data === "[DONE]") {
             try {
               await refreshConversations();
