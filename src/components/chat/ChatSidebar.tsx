@@ -29,6 +29,7 @@ export function ChatSidebar({
 
   return (
     <>
+    {/* Backdrop chỉ xuất hiện trên mobile để đóng sidebar khi người dùng click ra ngoài. */}
       <button
         type="button"
         aria-label="Đóng thanh bên"
@@ -40,7 +41,8 @@ export function ChatSidebar({
             : "pointer-events-none opacity-0",
         )}
       />
-
+      
+      {/* Desktop dùng sidebar cố định, mobile chuyển thành drawer trượt từ trái sang. */}
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex h-dvh w-[min(20rem,calc(100vw-2rem))] shrink-0 flex-col border-r bg-white transition-transform duration-300 md:static md:z-auto md:h-screen md:translate-x-0 md:transition-all",
