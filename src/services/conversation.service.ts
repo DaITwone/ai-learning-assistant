@@ -32,13 +32,25 @@ export class ConversationService {
       throw new Error("Conversation not found");
     }
 
-    const messages = await MessageRepository.findManyByConversationId(
-      conversationId,
-    );
+    const messages =
+      await MessageRepository.findManyByConversationId(conversationId);
 
     return messages.map((message) => ({
       ...message,
       createdAt: message.createdAt.toISOString(),
     }));
+  }
+
+  static async deleteConversation(userId: string, conversationId: string) {
+    const conversation = await ConversationRepository.findByIdAndUserId(
+      conversationId,
+      userId,
+    );
+
+    if (!conversation) {
+      throw new Error("Conversation not found");
+    }
+
+    await ConversationRepository.delete(conversationId, userId);
   }
 }

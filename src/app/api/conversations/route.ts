@@ -28,3 +28,23 @@ export async function POST() {
 
   return Response.json({ conversation }, { status: 201 });
 }
+
+export async function DELETE(request: Request) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return Response.json(
+      { error: "Unauthorized" },
+      { status: 401 },
+    );
+  }
+
+  const { conversationId } = await request.json();
+
+  await ConversationService.deleteConversation(
+    session.user.id,
+    conversationId,
+  );
+
+  return Response.json({ success: true });
+}

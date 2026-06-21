@@ -279,6 +279,55 @@ export function ChatPageClient() {
     }
   }
 
+  async function handleDeleteConversation(
+  conversationId: string,
+) {
+  try {
+    const response = await fetch(
+      "/api/conversations",
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          conversationId,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "Failed to delete conversation",
+      );
+    }
+
+    setConversations((current) =>
+      current.filter(
+        (item) => item.id !== conversationId,
+      ),
+    );
+
+    if (selectedConversationId === conversationId) {
+      const remaining = conversations.filter(
+        (item) => item.id !== conversationId,
+      );
+
+      setSelectedConversationId(
+        remaining[0]?.id ?? null,
+      );
+
+      if (remaining[0]) {
+        await loadMessages(remaining[0].id);
+      } else {
+        setMessages([]);
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
   return (
     <main className="flex h-dvh overflow-hidden bg-slate-50">
       <ChatSidebar
@@ -289,6 +338,9 @@ export function ChatPageClient() {
         }}
         onCreateConversation={() => {
           void handleCreateConversation();
+        }}
+        onDeleteConversation={(conversationId) => {
+          void handleDeleteConversation(conversationId);
         }}
         isMobileOpen={isSidebarOpen}
         onMobileClose={() => setIsSidebarOpen(false)}

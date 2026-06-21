@@ -58,4 +58,13 @@ export class ConversationRepository {
       },
     });
   }
+
+  static delete(id: string, userId: string) {
+    return prisma.conversation.deleteMany({
+      where: {
+        id,
+        userId,
+      },
+    });
+  }
 }
