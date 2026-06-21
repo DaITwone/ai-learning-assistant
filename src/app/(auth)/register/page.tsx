@@ -55,7 +55,7 @@ export default function RegisterPage() {
         throw new Error(result.message || "Đăng ký thất bại");
       }
 
-      setSuccess("Đăng ký thành công! Đang chuyển hướng...");
+      setSuccess("Đăng ký thành công!");
 
       form.reset();
 

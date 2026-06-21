@@ -249,7 +249,7 @@ export function ChatSidebar({
                         </button>
                       </DropdownMenuTrigger>
 
-                      <DropdownMenuContent align="end" className="w-44 mt-3">
+                      <DropdownMenuContent side="top" align="start" className="w-44 mb-3">
                         {/* TODO: bật lại khi tính năng đổi tên hoàn thiện */}
                         <DropdownMenuItem disabled className="gap-2">
                           <Pencil className="size-4" />
