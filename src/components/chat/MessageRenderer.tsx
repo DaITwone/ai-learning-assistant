@@ -14,7 +14,7 @@ export function MessageRenderer({ message }: MessageRendererProps) {
       return <TextMessage content={message.content} />;
 
     case "quiz":
-      return <QuizCard />;
+      return <QuizCard content={message.content} />;
 
     case "roadmap":
       return <RoadmapCard />;

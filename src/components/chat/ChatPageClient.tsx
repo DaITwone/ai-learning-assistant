@@ -233,10 +233,11 @@ export function ChatPageClient() {
 
           const data = line.replace("data: ", "");
 
-          // AI đã trả lời xong, đồng bộ lại danh sách conversation
+          // AI đã trả lời xong, đồng bộ lại danh sách conversation và tải lại tin nhắn
           if (data === "[DONE]") {
             try {
               await refreshConversations();
+              await loadMessages(conversationId);
             } catch (error) {
               console.error(error);
             }

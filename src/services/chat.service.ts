@@ -1,4 +1,5 @@
 import { gemini } from "@/lib/gemini";
+import { parseQuizPayload } from "@/lib/quiz";
 import { ConversationRepository } from "@/repositories/conversation.repository";
 import { MessageRepository } from "@/repositories/message.repository";
 
@@ -15,6 +16,21 @@ type GeminiContent = {
   parts: { text: string }[];
 };
 
+const SYSTEM_INSTRUCTION = `Bạn là một trợ lý học tập lập trình. Nếu người dùng yêu cầu "tạo quiz" hoặc "quiz" thì hãy trả về DUY NHẤT một JSON hợp lệ với cấu trúc sau:
+{
+  "title": "Tiêu đề quiz",
+  "topic": "Chủ đề quiz",
+  "questions": [
+    {
+      "question": "Câu hỏi?",
+      "options": ["Đáp án 1", "Đáp án 2", "Đáp án 3", "Đáp án 4"],
+      "answerIndex": 0
+    }
+  ]
+}
+Nếu người dùng không yêu cầu tạo quiz thì vẫn trả lời bình thường bằng tiếng Việt.
+Không thêm markdown, không thêm giải thích, không thêm văn bản ngoài JSON khi trả về quiz.`;
+
 // Tạo tiêu đề mặc định cho conversation từ tin nhắn đầu tiên của người dùng
 function createConversationTitleFromMessage(message: string) {
   const title = message.trim().slice(0, 120);
@@ -23,6 +39,39 @@ function createConversationTitleFromMessage(message: string) {
 }
 
 const MAX_CONTEXT_MESSAGES = 20;
+
+function convertMessageToGeminiContent(
+  message: Awaited<
+    ReturnType<typeof MessageRepository.findManyByConversationId>
+  >[number],
+): GeminiContent {
+  if (message.type === "quiz") {
+    try {
+      const quiz = JSON.parse(message.content);
+
+      return {
+        role: message.role === "assistant" ? "model" : "user",
+        parts: [
+          {
+            text: `Đã tạo quiz: ${quiz.title ?? "Quiz"} về chủ đề ${
+              quiz.topic ?? "Unknown"
+            }`,
+          },
+        ],
+      };
+    } catch {
+      return {
+        role: message.role === "assistant" ? "model" : "user",
+        parts: [{ text: "[Quiz generated]" }],
+      };
+    }
+  }
+
+  return {
+    role: message.role === "assistant" ? "model" : "user",
+    parts: [{ text: message.content }],
+  };
+}
 
 function buildGeminiContents(
   messages: Awaited<
@@ -33,10 +82,11 @@ function buildGeminiContents(
   const historyMessages = messages.slice(-MAX_CONTEXT_MESSAGES);
 
   return [
-    ...historyMessages.map((message): GeminiContent => ({
-      role: message.role === "assistant" ? "model" : "user",
-      parts: [{ text: message.content }],
-    })),
+    {
+      role: "user",
+      parts: [{ text: SYSTEM_INSTRUCTION }],
+    },
+    ...historyMessages.map(convertMessageToGeminiContent),
     {
       role: "user",
       parts: [{ text: currentMessage }],
@@ -93,11 +143,13 @@ export async function saveAssistantMessage(
 ) {
   if (!content.trim()) return;
 
+  const quizPayload = parseQuizPayload(content);
+
   await MessageRepository.create({
     conversationId,
     role: "assistant",
-    type: "text",
-    content,
+    type: quizPayload ? "quiz" : "text",
+    content: quizPayload ? JSON.stringify(quizPayload) : content,
   });
 
   await ConversationRepository.touch(conversationId);
