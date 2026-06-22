@@ -63,12 +63,12 @@ export function ChatInput({ onSend }: ChatInputProps) {
             disabled={!content.trim()}
             className="
               absolute
-              bottom-2
               right-2
+              top-1/2
+              -translate-y-1/2
               h-9
               w-9
               rounded-full
-              sm:bottom-2.5
               sm:right-3
             "
           >
