@@ -20,12 +20,14 @@ export default function Home() {
         </p>
 
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
-          Your AI-powered coding learning companion.
+          Your AI-powered personal learning companion.
         </h1>
 
         <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
           <TypingText
-            text="Giải thích khái niệm, phân tích source code, tạo quiz và lưu ghi chú học tập trong một không gian tập trung."
+            text="Học nhanh hơn với AI. Tìm hiểu kiến thức mới,
+tạo quiz, lưu ghi chú và xây dựng lộ trình học tập
+trong một không gian tập trung."
             speed={35}
           />
         </p>
