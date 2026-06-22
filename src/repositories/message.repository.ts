@@ -9,6 +9,7 @@ type CreateMessageInput = {
 };
 
 export class MessageRepository {
+  // Dùng để lấy toàn bộ tin nhắn của một cuộc trò chuyện conversation từ database.
   static findManyByConversationId(conversationId: string) {
     return prisma.message.findMany({
       where: { conversationId },

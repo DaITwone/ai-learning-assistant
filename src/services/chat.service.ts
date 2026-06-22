@@ -16,6 +16,8 @@ type GeminiContent = {
   parts: { text: string }[];
 };
 
+// Prompt hệ thống dùng để ép AI trả về JSON thuần khi người dùng yêu cầu tạo quiz,
+// giúp backend có thể parse và lưu quiz mà không cần xử lý thêm markdown/text dư thừa.
 const SYSTEM_INSTRUCTION = `Bạn là một trợ lý học tập lập trình. Nếu người dùng yêu cầu "tạo quiz" hoặc "quiz" thì hãy trả về DUY NHẤT một JSON hợp lệ với cấu trúc sau:
 {
   "title": "Tiêu đề quiz",
@@ -40,6 +42,8 @@ function createConversationTitleFromMessage(message: string) {
 
 const MAX_CONTEXT_MESSAGES = 20;
 
+// Không gửi toàn bộ nội dung quiz cũ vào context vì có thể làm tăng token đáng kể.
+// Chỉ giữ metadata để AI biết cuộc trò chuyện trước đó đã sinh quiz gì.
 function convertMessageToGeminiContent(
   message: Awaited<
     ReturnType<typeof MessageRepository.findManyByConversationId>
@@ -73,6 +77,8 @@ function convertMessageToGeminiContent(
   };
 }
 
+// Ghép system instruction + lịch sử chat gần nhất + tin nhắn hiện tại
+// thành context hoàn chỉnh gửi sang Gemini.
 function buildGeminiContents(
   messages: Awaited<
     ReturnType<typeof MessageRepository.findManyByConversationId>
@@ -94,7 +100,7 @@ function buildGeminiContents(
   ];
 }
 
-// Đảm bảo người dùng chỉ được truy cập convers của chính họ
+// Đảm bảo người dùng chỉ được truy cập conversation của chính họ
 export async function streamChatResponse(input: StreamChatInput) {
   // Xác thực convers tồn tại và thuộc về user hiện tại
   const conversation = await ConversationRepository.findByIdAndUserId(
