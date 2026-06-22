@@ -7,6 +7,8 @@ type QuizCardProps = {
   content: string;
 };
 
+// Mapping trạng thái làm bài (chưa trả lời / đúng / sai)
+// sang style hiển thị tương ứng để giữ UI nhất quán giữa các đáp án.
 function getOptionStyle(
   isSelected: boolean,
   isCorrect: boolean,
@@ -32,6 +34,8 @@ function getOptionStyle(
   return `${base} cursor-default border-slate-100 bg-slate-50/50 text-slate-400`;
 }
 
+// Hiển thị ký hiệu trạng thái của đáp án (A/B/C..., đúng, sai)
+// dựa trên tiến trình làm bài của người dùng.
 function OptionIcon({
   isSelected,
   isCorrect,
@@ -64,6 +68,8 @@ function OptionIcon({
     );
   }
 
+  // Luôn đánh dấu đáp án đúng sau khi câu hỏi được trả lời,
+  // kể cả khi người dùng chọn sai đáp án khác.
   if (isCorrect) {
     return (
       <span className={`${baseCircle} bg-emerald-100 text-emerald-600`}>✓</span>
@@ -81,6 +87,7 @@ function QuizBody({ quiz }: { quiz: QuizPayload }) {
   );
   const [activeQuestion, setActiveQuestion] = useState(0);
 
+  // Mỗi câu chỉ được trả lời một lần để giữ kết quả ổn định và tránh thay đổi điểm sau khi đã xem đáp án.
   function handleSelectOption(questionIndex: number, optionIndex: number) {
     setSelectedAnswers((current) => {
       if (current[questionIndex] !== -1) return current;
@@ -107,7 +114,7 @@ function QuizBody({ quiz }: { quiz: QuizPayload }) {
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-500 p-5 text-white shadow-lg shadow-indigo-200">
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-indigo-600 via-indigo-500 to-violet-500 p-5 text-white shadow-lg shadow-indigo-200">
         {/* decorative blobs */}
         <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
         <div className="pointer-events-none absolute -bottom-4 left-10 h-16 w-16 rounded-full bg-violet-300/20 blur-xl" />
@@ -169,6 +176,9 @@ function QuizBody({ quiz }: { quiz: QuizPayload }) {
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         {(() => {
           const question = quiz.questions[activeQuestion];
+
+          // Sử dụng -1 để biểu thị trạng thái chưa trả lời thay vì null/undefined
+          // nhằm đơn giản hóa việc tính điểm và kiểm tra tiến độ.
           const selectedAnswer = selectedAnswers[activeQuestion];
           const answered = selectedAnswer !== -1;
 
@@ -191,7 +201,11 @@ function QuizBody({ quiz }: { quiz: QuizPayload }) {
                   return (
                     <li key={optionIndex}>
                       <button
-                        className={getOptionStyle(isSelected, isCorrect, answered)}
+                        className={getOptionStyle(
+                          isSelected,
+                          isCorrect,
+                          answered,
+                        )}
                         onClick={() =>
                           handleSelectOption(activeQuestion, optionIndex)
                         }
@@ -201,7 +215,10 @@ function QuizBody({ quiz }: { quiz: QuizPayload }) {
                           isSelected={isSelected}
                           isCorrect={isCorrect}
                           answered={answered}
-                          label={OPTION_LABELS[optionIndex] ?? String(optionIndex + 1)}
+                          label={
+                            OPTION_LABELS[optionIndex] ??
+                            String(optionIndex + 1)
+                          }
                         />
                         <span className="flex-1 leading-relaxed">{option}</span>
                       </button>
@@ -259,10 +276,10 @@ function QuizBody({ quiz }: { quiz: QuizPayload }) {
           <div
             className={`flex items-center justify-between px-5 py-4 ${
               scorePercent! >= 80
-                ? "bg-gradient-to-r from-emerald-50 to-teal-50"
+                ? "bg-linear-to-r from-emerald-50 to-teal-50"
                 : scorePercent! >= 50
-                  ? "bg-gradient-to-r from-amber-50 to-yellow-50"
-                  : "bg-gradient-to-r from-rose-50 to-pink-50"
+                  ? "bg-linear-to-r from-amber-50 to-yellow-50"
+                  : "bg-linear-to-r from-rose-50 to-pink-50"
             }`}
           >
             <div>
