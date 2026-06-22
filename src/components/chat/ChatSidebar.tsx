@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import {
+  LogOut,
   Menu,
   MessageSquare,
   MoreHorizontal,
@@ -32,8 +33,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { Conversation } from "@/types/conversation";
+import { signOut } from "next-auth/react";
 
 type ChatSidebarProps = {
   conversations: Conversation[];
@@ -43,6 +50,7 @@ type ChatSidebarProps = {
   onDeleteConversation: (conversationId: string) => void;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
+  user?: { name?: string | null; email?: string | null } | null;
 };
 
 export function ChatSidebar({
@@ -53,6 +61,7 @@ export function ChatSidebar({
   onDeleteConversation,
   isMobileOpen = false,
   onMobileClose,
+  user,
 }: ChatSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [conversationToDelete, setConversationToDelete] =
@@ -69,6 +78,9 @@ export function ChatSidebar({
     onDeleteConversation(conversationToDelete.id);
     setConversationToDelete(null);
   };
+
+  const avatarLetter = user?.email?.[0]?.toUpperCase() ?? "?";
+  const displayName = user?.name ?? "...";
 
   return (
     <>
@@ -249,7 +261,11 @@ export function ChatSidebar({
                         </button>
                       </DropdownMenuTrigger>
 
-                      <DropdownMenuContent side="top" align="start" className="w-44 mb-3">
+                      <DropdownMenuContent
+                        side="top"
+                        align="start"
+                        className="w-44 mb-3"
+                      >
                         {/* TODO: bật lại khi tính năng đổi tên hoàn thiện */}
                         <DropdownMenuItem disabled className="gap-2">
                           <Pencil className="size-4" />
@@ -281,21 +297,58 @@ export function ChatSidebar({
         </div>
 
         <div className="border-t p-2.5">
-          <button
-            className={cn(
-              "flex w-full items-center rounded-lg transition-colors hover:bg-slate-100",
-              collapsed ? "gap-3 p-2 md:justify-center" : "gap-3 p-2",
-            )}
-          >
-            <div className="flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-medium text-white">
-              D
-            </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                className={cn(
+                  "flex w-full items-center rounded-lg transition-colors hover:bg-slate-100",
+                  collapsed ? "gap-3 p-2 md:justify-center" : "gap-3 p-2",
+                )}
+              >
+                <div className="flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-medium text-white">
+                  {avatarLetter}
+                </div>
 
-            <div className={cn("min-w-0 text-left", collapsed && "md:hidden")}>
-              <div className="truncate text-sm font-medium">Nguyễn Văn Đạt</div>
-              <div className="text-xs text-slate-500">Go</div>
-            </div>
-          </button>
+                <div
+                  className={cn("min-w-0 text-left", collapsed && "md:hidden")}
+                >
+                  <div className="truncate text-sm font-medium">
+                    {displayName}
+                  </div>
+                  <div className="truncate text-xs text-slate-500">
+                    Go
+                  </div>
+                </div>
+              </button>
+            </PopoverTrigger>
+
+            <PopoverContent side="top" align="center" className="w-(--radix-popover-trigger-width) mb-1">
+              <div className="flex items-center gap-3 rounded-lg p-2">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-semibold text-white">
+                  {avatarLetter}
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold">
+                    {displayName}
+                  </div>
+                  <div className="truncate text-xs text-slate-500">
+                    {user?.email ?? ""}
+                  </div>
+                </div>
+              </div>
+
+              <div className="my-1.5 border-t" />
+
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100"
+              >
+                <LogOut className="size-4 shrink-0" />
+                Đăng xuất
+              </button>
+            </PopoverContent>
+          </Popover>
         </div>
       </aside>
 
