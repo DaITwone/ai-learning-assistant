@@ -1,8 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import TypingText from "../components/auth/TypingText";
+import { auth } from "@/lib/auth";
+import LogoutButton from "@/components/auth/LogoutButton";
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth();
   return (
     <main className="animated-bg flex min-h-screen items-center justify-center px-4 py-10 sm:px-6">
       <section className="w-full max-w-2xl px-2 text-center sm:px-4">
@@ -25,27 +28,40 @@ export default function Home() {
 
         <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
           <TypingText
-            text="Học nhanh hơn với AI. Tìm hiểu kiến thức mới,
-tạo quiz, lưu ghi chú và xây dựng lộ trình học tập
-trong một không gian tập trung."
+            text="Học nhanh hơn với AI. Tìm hiểu kiến thức mới, tạo quiz, lưu ghi chú và xây dựng lộ trình học tập trong một không gian tập trung."
             speed={35}
           />
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
-            href="/login"
-            className="flex h-12 w-full items-center justify-center rounded-lg bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto"
-          >
-            Đăng nhập
-          </Link>
+          {session ? (
+            <>
+              <Link
+                href="/chat"
+                className="flex h-12 items-center rounded-lg border border-slate-300 bg-white px-5 text-sm font-medium transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
+              >
+                {session.user?.email}
+              </Link>
 
-          <Link
-            href="/register"
-            className="flex h-12 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-900 transition hover:border-sky-300 hover:text-sky-800 sm:w-auto"
-          >
-            Tạo tài khoản
-          </Link>
+              <LogoutButton />
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="flex h-12 w-full items-center justify-center rounded-lg bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto"
+              >
+                Đăng nhập
+              </Link>
+
+              <Link
+                href="/register"
+                className="flex h-12 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-900 transition hover:border-sky-300 hover:text-sky-800 sm:w-auto"
+              >
+                Tạo tài khoản
+              </Link>
+            </>
+          )}
         </div>
       </section>
     </main>
