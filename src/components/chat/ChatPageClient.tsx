@@ -131,7 +131,7 @@ export function ChatPageClient() {
     }
   }
 
-  // Chuyển sang conersation khác và tải lại lịch sử tin nhắn
+  // Chuyển sang conversation khác và tải lại lịch sử tin nhắn
   async function handleSelectConversation(conversationId: string) {
     try {
       setSelectedConversationId(conversationId);
@@ -168,6 +168,8 @@ export function ChatPageClient() {
         return;
       }
     }
+
+    const isQuizRequest = /\b(?:quiz|tạo quiz|bài quiz)\b/i.test(content);
 
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -216,7 +218,6 @@ export function ChatPageClient() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
-      // Buffer lưu dữ liệu chưa hoàn chỉnh giữa các lần đọc stream.
       let buffer = "";
 
       while (true) {
@@ -248,16 +249,20 @@ export function ChatPageClient() {
           const parsed = JSON.parse(data);
 
           if (parsed.text) {
-            setMessages((currentMessages) =>
-              currentMessages.map((message) =>
-                message.id === assistantMessageId
-                  ? {
-                      ...message,
-                      content: message.content + parsed.text,
-                    }
-                  : message,
-              ),
-            );
+            // Chỉ hiển thị nội dung real-time nếu không phải quiz,
+            // tránh người dùng thấy JSON thô khi AI đang trả về payload quiz.
+            if (!isQuizRequest) {
+              setMessages((currentMessages) =>
+                currentMessages.map((message) =>
+                  message.id === assistantMessageId
+                    ? {
+                        ...message,
+                        content: message.content + parsed.text,
+                      }
+                    : message,
+                ),
+              );
+            }
           }
 
           if (parsed.error) {
