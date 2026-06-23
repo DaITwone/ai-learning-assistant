@@ -25,6 +25,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -48,6 +57,7 @@ type ChatSidebarProps = {
   onSelectConversation: (conversationId: string) => void;
   onCreateConversation: () => void;
   onDeleteConversation: (conversationId: string) => void;
+  onRenameConversation: (conversationId: string, title: string) => void;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
   user?: { name?: string | null; email?: string | null } | null;
@@ -59,6 +69,7 @@ export function ChatSidebar({
   onSelectConversation,
   onCreateConversation,
   onDeleteConversation,
+  onRenameConversation,
   isMobileOpen = false,
   onMobileClose,
   user,
@@ -66,6 +77,9 @@ export function ChatSidebar({
   const [collapsed, setCollapsed] = useState(false);
   const [conversationToDelete, setConversationToDelete] =
     useState<Conversation | null>(null);
+  const [conversationToRename, setConversationToRename] =
+    useState<Conversation | null>(null);
+  const [renameTitle, setRenameTitle] = useState("");
 
   const handleRequestDelete = (conversation: Conversation) => {
     // Đợi DropdownMenu đóng + trả focus xong rồi mới mở AlertDialog,
@@ -77,6 +91,22 @@ export function ChatSidebar({
     if (!conversationToDelete) return;
     onDeleteConversation(conversationToDelete.id);
     setConversationToDelete(null);
+  };
+
+  const handleOpenRename = (conversation: Conversation) => {
+    setConversationToRename(conversation);
+    setRenameTitle(conversation.title);
+  };
+
+  const handleConfirmRename = () => {
+    if (!conversationToRename) return;
+    const title = renameTitle.trim();
+
+    if (!title) return;
+
+    onRenameConversation(conversationToRename.id, title);
+    setConversationToRename(null);
+    setRenameTitle("");
   };
 
   const avatarLetter = user?.email?.[0]?.toUpperCase() ?? "?";
@@ -266,8 +296,10 @@ export function ChatSidebar({
                         align="start"
                         className="w-44 mb-3"
                       >
-                        {/* TODO: bật lại khi tính năng đổi tên hoàn thiện */}
-                        <DropdownMenuItem disabled className="gap-2">
+                        <DropdownMenuItem
+                          onSelect={() => handleOpenRename(conversation)}
+                          className="gap-2"
+                        >
                           <Pencil className="size-4" />
                           Đổi tên
                         </DropdownMenuItem>
@@ -315,14 +347,16 @@ export function ChatSidebar({
                   <div className="truncate text-sm font-medium">
                     {displayName}
                   </div>
-                  <div className="truncate text-xs text-slate-500">
-                    Go
-                  </div>
+                  <div className="truncate text-xs text-slate-500">Go</div>
                 </div>
               </button>
             </PopoverTrigger>
 
-            <PopoverContent side="top" align="center" className="w-(--radix-popover-trigger-width) mb-1">
+            <PopoverContent
+              side="top"
+              align="center"
+              className="w-(--radix-popover-trigger-width) mb-1"
+            >
               <div className="flex items-center gap-3 rounded-lg p-2">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-semibold text-white">
                   {avatarLetter}
@@ -378,6 +412,51 @@ export function ChatSidebar({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog
+        open={conversationToRename !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setConversationToRename(null);
+            setRenameTitle("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Đổi tên cuộc trò chuyện</DialogTitle>
+            <DialogDescription>
+              Nhập tên mới cho cuộc trò chuyện này
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <label
+              className="text-sm font-medium text-slate-700"
+              htmlFor="conversation-title"
+            >
+              Tên mới
+            </label>
+            <Input
+              id="conversation-title"
+              value={renameTitle}
+              onChange={(event) => setRenameTitle(event.target.value)}
+              placeholder="Nhập tên cuộc trò chuyện"
+              className="w-full"
+            />
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setConversationToRename(null)}
+            >
+              Huỷ
+            </Button>
+            <Button onClick={handleConfirmRename}>Lưu</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

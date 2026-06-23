@@ -41,6 +41,23 @@ export class ConversationService {
     }));
   }
 
+  static async updateConversationTitle(
+    userId: string,
+    conversationId: string,
+    title: string,
+  ) {
+    const conversation = await ConversationRepository.findByIdAndUserId(
+      conversationId,
+      userId,
+    );
+
+    if (!conversation) {
+      throw new Error("Conversation not found");
+    }
+
+    await ConversationRepository.updateTitle(conversationId, userId, title);
+  }
+
   static async deleteConversation(userId: string, conversationId: string) {
     const conversation = await ConversationRepository.findByIdAndUserId(
       conversationId,

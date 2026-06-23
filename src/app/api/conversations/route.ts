@@ -29,6 +29,41 @@ export async function POST() {
   return Response.json({ conversation }, { status: 201 });
 }
 
+export async function PATCH(request: Request) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { conversationId, title } = await request.json();
+
+  if (
+    !conversationId ||
+    typeof conversationId !== "string" ||
+    !title ||
+    typeof title !== "string" ||
+    !title.trim()
+  ) {
+    return Response.json({ error: "Invalid input" }, { status: 400 });
+  }
+
+  try {
+    await ConversationService.updateConversationTitle(
+      session.user.id,
+      conversationId,
+      title.trim(),
+    );
+
+    return Response.json({ success: true });
+  } catch {
+    return Response.json(
+      { error: "Conversation not found" },
+      { status: 404 },
+    );
+  }
+}
+
 export async function DELETE(request: Request) {
   const session = await auth();
 

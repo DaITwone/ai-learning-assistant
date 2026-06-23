@@ -320,6 +320,45 @@ export function ChatPageClient() {
     }
   }
 
+  async function handleRenameConversation(
+    conversationId: string,
+    title: string,
+  ) {
+    // Cập nhật UI trước để người dùng thấy tiêu đề mới ngay lập tức,
+    // nếu request thất bại sẽ rollback về danh sách conversation trước đó.
+    const previousConversations = conversations;
+
+    // Optimistic update: đổi tên trên UI trước khi đồng bộ với server
+    setConversations((current) =>
+      current.map((conversation) =>
+        conversation.id === conversationId
+          ? { ...conversation, title }
+          : conversation,
+      ),
+    );
+
+    try {
+      const response = await fetch("/api/conversations", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          conversationId,
+          title,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to rename conversation");
+      }
+    } catch (error) {
+      console.error(error);
+      // Khôi phục dữ liệu cũ nếu server từ chối cập nhật tên conversation
+      setConversations(previousConversations);
+    }
+  }
+
   return (
     <main className="flex h-dvh overflow-hidden bg-slate-50">
       <ChatSidebar
@@ -333,6 +372,9 @@ export function ChatPageClient() {
         }}
         onDeleteConversation={(conversationId) => {
           void handleDeleteConversation(conversationId);
+        }}
+        onRenameConversation={(conversationId, title) => {
+          handleRenameConversation(conversationId, title);
         }}
         isMobileOpen={isSidebarOpen}
         onMobileClose={() => setIsSidebarOpen(false)}
