@@ -35,7 +35,7 @@ export function MessageList({ messages }: MessageListProps) {
 
           <div
             className={cn(
-              "min-w-0 break-words rounded-2xl px-4 py-3 text-sm shadow-sm sm:rounded-3xl sm:px-5 sm:text-base",
+              "min-w-0 wrap-break-word rounded-2xl px-4 py-3 text-sm shadow-sm sm:rounded-3xl sm:px-5 sm:text-base",
               message.role === "user"
                 ? "max-w-[82%] bg-slate-950 text-white sm:max-w-[75%]"
                 : "max-w-[calc(100%-2.5rem)] border border-slate-200 bg-white text-slate-900 sm:max-w-[90%]",
@@ -52,11 +52,11 @@ export function MessageList({ messages }: MessageListProps) {
             )}
           </div>
 
-          {message.role === "user" && (
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold sm:h-9 sm:w-9">
-              U
+          {/* {message.role === "user" && (
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-xs font-bold text-white shadow-sm sm:h-9 sm:w-9">
+              {initial}
             </div>
-          )}
+          )} */}
         </div>
       ))}
     </div>
