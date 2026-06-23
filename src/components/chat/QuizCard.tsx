@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import { parseQuizPayload, type QuizPayload } from "@/lib/quiz";
+import { BookOpen } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type QuizCardProps = {
   content: string;
@@ -227,7 +234,7 @@ function QuizBody({ quiz }: { quiz: QuizPayload }) {
                 })}
               </ul>
 
-              {answered && (
+              {/* {answered && (
                 <div
                   className={`mt-4 rounded-2xl p-3 text-xs font-medium leading-relaxed ${
                     selectedAnswer === question.answerIndex
@@ -244,7 +251,7 @@ function QuizBody({ quiz }: { quiz: QuizPayload }) {
                     </span>
                   )}
                 </div>
-              )}
+              )} */}
             </>
           );
         })()}
@@ -320,7 +327,68 @@ function QuizBody({ quiz }: { quiz: QuizPayload }) {
   );
 }
 
+// Preview thu nhỏ hiển thị trong bubble chat
+function QuizPreview({
+  quiz,
+  onOpen,
+}: {
+  quiz: QuizPayload;
+  onOpen: () => void;
+}) {
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl border border-indigo-200 bg-indigo-50 p-4 -m-5 
+                shadow-[0_4px_0_0_#a5b4fc,0_6px_16px_-2px_rgba(99,102,241,0.25)]"
+    >
+      {" "}
+      {/* Animated gradient background */}
+      <div className="animate-quiz-shimmer pointer-events-none absolute inset-0 bg-size-[200%_100%] bg-[linear-gradient(90deg,transparent_0%,rgba(99,102,241,0.08)_50%,transparent_100%)]" />
+      <style>{`
+        @keyframes quiz-shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .animate-quiz-shimmer {
+          animation: quiz-shimmer 2.5s ease-in-out infinite;
+        }
+      `}</style>
+      <div className="relative z-10 flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-500" />
+          </span>
+          <span className="text-xs font-semibold uppercase tracking-widest text-indigo-400">
+            Quiz Time
+          </span>
+        </div>
+
+        <p className="font-semibold text-slate-800">{quiz.title}</p>
+
+        {quiz.topic && (
+          <p className="text-sm text-slate-500">Chủ đề: {quiz.topic}</p>
+        )}
+
+        <div className="flex items-center gap-2">
+          <BookOpen className="h-3.5 w-3.5 text-indigo-400" />
+          <p className="text-sm text-slate-500">
+            {quiz.questions.length} câu hỏi
+          </p>
+        </div>
+
+        <button
+          onClick={onOpen}
+          className="mt-1 w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-700 active:scale-[0.98]"
+        >
+          Bắt đầu làm bài →
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function QuizCard({ content }: QuizCardProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const quizPayload = parseQuizPayload(content);
 
   if (!quizPayload) {
@@ -335,8 +403,23 @@ export function QuizCard({ content }: QuizCardProps) {
   }
 
   return (
-    <div className="w-full max-w-lg p-4">
-      <QuizBody quiz={quizPayload} />
-    </div>
+    <>
+      <QuizPreview quiz={quizPayload} onOpen={() => setIsOpen(true)} />
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="flex h-screen w-screen flex-col overflow-hidden rounded-none p-0 max-w-none!">
+          <DialogHeader className="shrink-0 border-b border-slate-100 px-6 py-4">
+            <DialogTitle className="text-base font-semibold text-slate-800">
+              {quizPayload.title}
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Scroll xảy ra bên trong, không phải toàn trang */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+            <QuizBody quiz={quizPayload} />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
